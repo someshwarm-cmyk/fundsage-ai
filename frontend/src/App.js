@@ -14,7 +14,7 @@ function App() {
     setError(null);
     setProfile(formData);
     try {
-      const response = await fetch('http://localhost:8000/api/recommend', {
+      const response = await fetch('https://curly-space-giggle-97g4g7gwwq6j2pjgq-8000.app.github.dev/api/recommend', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),

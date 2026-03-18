@@ -18,7 +18,7 @@ export default function RecommendationDashboard({ data, profile, onReset }) {
     setLoadingHistory(true);
     setSelectedFund(fund);
     try {
-      const resp = await fetch(`http://localhost:8000/api/fund/${fund.scheme_code}/history`);
+      const resp = await fetch(`https://curly-space-giggle-97g4g7gwwq6j2pjgq-8000.app.github.dev/api/fund/${fund.scheme_code}/history`);
       if (resp.ok) {
         const hData = await resp.json();
         setHistoryData(hData);
