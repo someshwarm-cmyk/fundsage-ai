@@ -1,0 +1,173 @@
+.dashboard {}
+
+.profile-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 20px;
+  margin-bottom: 24px;
+}
+
+.profile-tag {
+  font-size: 13px;
+  color: var(--text-muted);
+  background: rgba(255,255,255,0.04);
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.bar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+
+/* Download Button */
+.download-btn {
+  background: linear-gradient(135deg, #F0A500, #F5C842);
+  color: #0A1628;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.download-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(240, 165, 0, 0.4);
+}
+
+.download-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Reset Button */
+.reset-btn {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.reset-btn:hover {
+  color: var(--teal);
+  border-color: var(--teal);
+}
+
+/* Dashboard Title */
+.dashboard-title {
+  margin-bottom: 24px;
+}
+
+.dashboard-title h2 {
+  font-size: 28px;
+  color: var(--gold);
+}
+
+.dashboard-title p {
+  color: var(--text-muted);
+  font-size: 14px;
+  font-family: 'DM Sans', sans-serif;
+  margin-top: 4px;
+}
+
+/* Main Grid */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+  .bar-actions {
+    margin-left: 0;
+    width: 100%;
+  }
+  .download-btn,
+  .reset-btn {
+    flex: 1;
+    text-align: center;
+  }
+}
+
+/* Columns */
+.col-title {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 16px;
+}
+
+.funds-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.detail-column {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Detail Header */
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.detail-header h3 {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  flex: 1;
+  line-height: 1.4;
+}
+
+.nav-current {
+  font-size: 14px;
+  color: var(--gold);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Chart Loading */
+.chart-loading {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 60px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 14px;
+}
