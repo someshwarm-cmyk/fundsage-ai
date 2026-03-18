@@ -1,0 +1,58 @@
+.chart-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 16px; padding: 20px;
+  backdrop-filter: blur(8px);
+}
+
+.chart-header {
+  display: flex; justify-content: space-between;
+  align-items: center; margin-bottom: 16px;
+  gap: 12px; flex-wrap: wrap;
+}
+
+.chart-header h4 {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px; font-weight: 500; color: var(--text-muted);
+}
+
+.period-tabs {
+  display: flex; gap: 4px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 8px; padding: 4px;
+}
+
+.period-tab {
+  background: transparent; border: none;
+  color: var(--text-muted); padding: 4px 12px;
+  border-radius: 6px; cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px; transition: all 0.2s;
+}
+
+.period-tab:hover { color: var(--text); }
+.period-tab.active { background: var(--teal); color: white; }
+
+.return-summary {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 8px; margin-bottom: 16px;
+}
+
+.ret-item {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px;
+  text-align: center; transition: border-color 0.2s;
+}
+
+.ret-item.active { border-color: var(--teal); background: rgba(0,180,216,0.06); }
+.ret-period { display: block; font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
+.ret-cagr { font-size: 13px; font-weight: 600; }
+
+.chart-container { height: 240px; position: relative; }
+
+.chart-placeholder {
+  height: 100%; display: flex;
+  align-items: center; justify-content: center;
+  color: var(--text-muted); font-size: 14px;
+}
