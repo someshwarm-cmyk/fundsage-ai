@@ -5,3 +5,5 @@ groq
 numpy
 python-dotenv==1.0.1
 pydantic==2.7.1
+scikit-learn
+shap

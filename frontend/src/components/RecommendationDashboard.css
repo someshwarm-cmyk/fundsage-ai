@@ -1,17 +1,18 @@
-.dashboard {}
+.dashboard { display: flex; flex-direction: column; gap: 24px; }
 
+/* ── Profile Bar ── */
 .profile-bar {
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: space-between;
   flex-wrap: wrap;
+  gap: 12px;
   background: var(--card-bg);
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 12px 20px;
-  margin-bottom: 24px;
 }
-
+.profile-tags { display: flex; flex-wrap: wrap; gap: 8px; }
 .profile-tag {
   font-size: 13px;
   color: var(--text-muted);
@@ -21,21 +22,16 @@
   border: 1px solid var(--border);
   text-transform: capitalize;
   white-space: nowrap;
-}
-
-.bar-actions {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-left: auto;
+  gap: 5px;
 }
-
-/* Download Button */
+.bar-actions { display: flex; gap: 10px; }
 .download-btn {
   background: linear-gradient(135deg, #F0A500, #F5C842);
   color: #0A1628;
   border: none;
-  padding: 8px 18px;
+  padding: 8px 16px;
   border-radius: 8px;
   cursor: pointer;
   font-family: 'DM Sans', sans-serif;
@@ -44,19 +40,8 @@
   transition: all 0.2s;
   white-space: nowrap;
 }
-
-.download-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(240, 165, 0, 0.4);
-}
-
-.download-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
-
-/* Reset Button */
+.download-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(240,165,0,0.4); }
+.download-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 .reset-btn {
   background: transparent;
   color: var(--text-muted);
@@ -69,99 +54,165 @@
   transition: all 0.2s;
   white-space: nowrap;
 }
+.reset-btn:hover { color: var(--teal); border-color: var(--teal); }
 
-.reset-btn:hover {
-  color: var(--teal);
-  border-color: var(--teal);
+/* ── Title ── */
+.dashboard-title h2 { font-size: 28px; color: var(--gold); }
+.dashboard-title p  { color: var(--text-muted); font-size: 13px; font-family: 'DM Sans', sans-serif; margin-top: 4px; }
+
+/* ── Returns Table ── */
+.returns-table-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px;
+  overflow: hidden;
 }
-
-/* Dashboard Title */
-.dashboard-title {
-  margin-bottom: 24px;
-}
-
-.dashboard-title h2 {
-  font-size: 28px;
-  color: var(--gold);
-}
-
-.dashboard-title p {
-  color: var(--text-muted);
-  font-size: 14px;
-  font-family: 'DM Sans', sans-serif;
-  margin-top: 4px;
-}
-
-/* Main Grid */
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: 380px 1fr;
-  gap: 24px;
-  align-items: start;
-}
-
-@media (max-width: 900px) {
-  .dashboard-grid {
-    grid-template-columns: 1fr;
-  }
-  .bar-actions {
-    margin-left: 0;
-    width: 100%;
-  }
-  .download-btn,
-  .reset-btn {
-    flex: 1;
-    text-align: center;
-  }
-}
-
-/* Columns */
-.col-title {
-  font-family: 'DM Sans', sans-serif;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 1px;
+.rt-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 16px;
 }
-
-.funds-column {
-  display: flex;
-  flex-direction: column;
+.rt-header h3 { font-size: 15px; color: var(--text); }
+.rt-note { font-size: 11px; color: var(--text-muted); font-family: 'DM Sans', sans-serif; }
+.returns-table-wrap { overflow-x: auto; }
+.returns-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+}
+.returns-table th {
+  background: rgba(255,255,255,0.04);
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 10px 12px;
+  text-align: left;
+  white-space: nowrap;
+}
+.returns-table td {
+  padding: 12px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  color: var(--text);
+  vertical-align: middle;
+}
+.returns-table tr:hover td { background: rgba(255,255,255,0.03); }
+.returns-table tr.active-row td { background: rgba(0,180,216,0.06); border-bottom-color: rgba(0,180,216,0.15); }
+.fund-name-cell { font-weight: 500; max-width: 220px; }
+.ret-cell { font-weight: 600; white-space: nowrap; text-align: right; }
+.rank-pill { font-size: 16px; }
+.rank-1 { color: #FFD700; }
+.rank-2 { color: #C0C0C0; }
+.rank-3 { color: #CD7F32; }
+.risk-mini { display: flex; align-items: center; gap: 6px; }
+.risk-mini-bar { width: 50px; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; }
+.score-pill {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
 }
 
-.detail-column {
+/* ── Fund Cards Row ── */
+.fund-cards-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+/* ── Detail Section ── */
+.detail-section {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
-
-/* Detail Header */
-.detail-header {
+.detail-fund-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 12px;
+  gap: 16px;
 }
+.detail-fund-header h3 { font-size: 18px; color: var(--text); font-weight: 700; line-height: 1.3; }
+.detail-fund-meta { font-size: 12px; color: var(--text-muted); font-family: 'DM Sans', sans-serif; display: block; margin-top: 4px; }
+.detail-score { text-align: center; flex-shrink: 0; }
+.ds-label { font-size: 10px; color: var(--text-muted); display: block; text-transform: uppercase; letter-spacing: 1px; }
+.ds-value { font-size: 24px; font-weight: 800; color: var(--gold); }
 
-.detail-header h3 {
-  font-family: 'DM Sans', sans-serif;
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--text);
+/* Tabs */
+.detail-tabs { display: flex; gap: 4px; background: rgba(255,255,255,0.03); border-radius: 10px; padding: 4px; border: 1px solid var(--border); flex-wrap: wrap; }
+.detail-tab {
   flex: 1;
-  line-height: 1.4;
-}
-
-.nav-current {
-  font-size: 14px;
-  color: var(--gold);
+  min-width: 100px;
+  background: transparent;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
   font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'DM Sans', sans-serif;
   white-space: nowrap;
 }
+.detail-tab.active { background: var(--teal); color: #fff; }
+.detail-tab:hover:not(.active) { color: var(--text); background: rgba(255,255,255,0.05); }
 
-/* Chart Loading */
+/* ── Overview Grid ── */
+.overview-grid {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 20px;
+  align-items: start;
+}
+@media (max-width: 900px) { .overview-grid { grid-template-columns: 1fr; } }
+.overview-left { display: flex; flex-direction: column; gap: 16px; }
+.overview-right { display: flex; flex-direction: column; gap: 16px; }
+
+.ai-explanation-card {
+  background: rgba(0,180,216,0.06);
+  border: 1px solid rgba(0,180,216,0.2);
+  border-radius: 12px;
+  padding: 16px;
+}
+.aec-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  font-size: 20px;
+}
+.aec-header strong { font-size: 13px; color: var(--text); display: block; }
+.aec-model { font-size: 11px; color: var(--teal); }
+.ai-explanation-card p { font-size: 13px; color: var(--text-muted); line-height: 1.6; margin: 0; font-family: 'DM Sans', sans-serif; }
+
+.quick-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.qm-item {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+  text-align: center;
+}
+.qm-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.qm-value { font-size: 15px; font-weight: 700; }
 .chart-loading {
   background: var(--card-bg);
   border: 1px solid var(--border);
@@ -169,5 +220,4 @@
   padding: 60px;
   text-align: center;
   color: var(--text-muted);
-  font-size: 14px;
 }
