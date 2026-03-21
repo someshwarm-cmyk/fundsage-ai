@@ -1,77 +1,96 @@
 .input-form {
-  max-width: 560px;
+  max-width: 700px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 28px;
-  padding: 12px 0 40px;
+  gap: 32px;
+  padding: 12px 0 48px;
 }
 
-/* ── Header ──────────────────────────────────────────────────────── */
-.form-header {
+/* ── Hero ──────────────────────────────────────────────────────────── */
+.form-hero {
   text-align: center;
-  padding: 24px 0 8px;
+  padding: 40px 24px 24px;
+  background: linear-gradient(135deg, rgba(0,180,216,0.06), rgba(240,165,0,0.04));
+  border: 1px solid var(--border);
+  border-radius: 20px;
 }
-.form-logo {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  margin-bottom: 8px;
-}
-.logo-icon {
-  font-size: 28px;
-  color: var(--gold);
-}
-.logo-text {
-  font-size: 28px;
+.hero-icon { font-size: 48px; color: var(--gold); margin-bottom: 8px; }
+.hero-title {
+  font-size: 36px;
   font-weight: 800;
   color: var(--text);
-  letter-spacing: -0.5px;
+  margin-bottom: 8px;
+  letter-spacing: -1px;
 }
-.logo-ai {
-  color: var(--teal);
-}
-.form-tagline {
-  font-size: 13px;
+.hero-title span { color: var(--teal); }
+.hero-sub {
+  font-size: 14px;
   color: var(--text-muted);
   font-family: 'DM Sans', sans-serif;
-  letter-spacing: 0.5px;
+  max-width: 500px;
+  margin: 0 auto 16px;
+  line-height: 1.6;
+}
+.hero-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+.hero-pills span {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-family: 'DM Sans', sans-serif;
 }
 
-/* ── Sections ────────────────────────────────────────────────────── */
+/* ── Sections ──────────────────────────────────────────────────────── */
 .form-section {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px;
 }
-.form-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 1px;
+.section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
+.form-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.section-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-family: 'DM Sans', sans-serif;
+}
 .amount-display {
-  font-size: 18px;
+  font-size: 22px;
   font-weight: 700;
   color: var(--gold);
-  text-transform: none;
-  letter-spacing: 0;
 }
 
-/* ── Option Groups ───────────────────────────────────────────────── */
-.option-group {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+/* ── Option Groups ─────────────────────────────────────────────────── */
+.option-group { display: grid; gap: 10px; }
+.three-col  { grid-template-columns: repeat(3, 1fr); }
+.four-col   { grid-template-columns: repeat(4, 1fr); }
+.six-col    { grid-template-columns: repeat(3, 1fr); }
+
+@media (min-width: 600px) {
+  .six-col { grid-template-columns: repeat(6, 1fr); }
 }
-.invest-group {
-  grid-template-columns: repeat(4, 1fr);
-}
+
 .option-btn {
   background: rgba(255,255,255,0.03);
   border: 1px solid var(--border);
@@ -84,65 +103,58 @@
   gap: 4px;
   transition: all 0.2s;
   font-family: 'DM Sans', sans-serif;
+  position: relative;
 }
 .option-btn:hover {
   border-color: var(--teal);
-  background: rgba(0, 180, 216, 0.06);
+  background: rgba(0,180,216,0.06);
+  transform: translateY(-1px);
 }
 .option-btn.active {
   border-color: var(--teal);
-  background: rgba(0, 180, 216, 0.12);
+  background: rgba(0,180,216,0.12);
   box-shadow: 0 0 0 1px var(--teal);
 }
-
-/* Risk colours */
-.option-btn.risk-low.active    { border-color: #2DCE89; background: rgba(45,206,137,0.12); box-shadow: 0 0 0 1px #2DCE89; }
-.option-btn.risk-medium.active { border-color: #F0A500; background: rgba(240,165,0,0.12);  box-shadow: 0 0 0 1px #F0A500; }
-.option-btn.risk-high.active   { border-color: #F5365C; background: rgba(245,54,92,0.12);  box-shadow: 0 0 0 1px #F5365C; }
-
-.opt-icon  { font-size: 20px; }
-.opt-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text);
-}
-.opt-desc {
-  font-size: 10px;
-  color: var(--text-muted);
-  text-align: center;
-}
-
-/* Invest buttons — tighter for 4 columns */
-.invest-btn { padding: 10px 6px; }
-.invest-desc {
+.opt-icon  { font-size: 22px; }
+.opt-label { font-size: 13px; font-weight: 600; color: var(--text); }
+.opt-desc  { font-size: 10px; color: var(--text-muted); text-align: center; line-height: 1.3; }
+.opt-tip   {
   font-size: 9px;
-  color: var(--text-muted);
+  color: var(--teal);
   text-align: center;
   line-height: 1.3;
   display: none;
+  margin-top: 4px;
 }
-.invest-btn:hover .invest-desc,
-.invest-btn.active .invest-desc {
-  display: block;
-}
+.option-btn.active .opt-tip,
+.option-btn:hover .opt-tip { display: block; }
 
-/* SWP info banner */
-.swp-info {
+/* Risk colours */
+.risk-low.active    { border-color: #2DCE89; background: rgba(45,206,137,0.10); box-shadow: 0 0 0 1px #2DCE89; }
+.risk-medium.active { border-color: #F0A500; background: rgba(240,165,0,0.10);  box-shadow: 0 0 0 1px #F0A500; }
+.risk-high.active   { border-color: #F5365C; background: rgba(245,54,92,0.10);  box-shadow: 0 0 0 1px #F5365C; }
+
+/* Info Banner */
+.info-banner {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   align-items: flex-start;
-  background: rgba(0, 180, 216, 0.08);
-  border: 1px solid rgba(0, 180, 216, 0.3);
+  background: rgba(0,180,216,0.06);
+  border: 1px solid rgba(0,180,216,0.25);
   border-radius: 10px;
-  padding: 10px 14px;
-  font-size: 12px;
-  color: var(--text-muted);
+  padding: 12px 14px;
   font-family: 'DM Sans', sans-serif;
-  line-height: 1.5;
+  animation: fadeIn 0.2s ease;
 }
-.swp-info span:first-child { font-size: 16px; flex-shrink: 0; }
+.info-banner.selected {
+  background: rgba(240,165,0,0.06);
+  border-color: rgba(240,165,0,0.25);
+}
+.info-icon { font-size: 22px; flex-shrink: 0; }
+.info-banner strong { font-size: 13px; color: var(--text); display: block; margin-bottom: 2px; }
+.info-banner p { font-size: 12px; color: var(--text-muted); margin: 0; line-height: 1.5; }
 
-/* ── Sliders ─────────────────────────────────────────────────────── */
+/* ── Sliders ───────────────────────────────────────────────────────── */
 .amount-slider {
   width: 100%;
   height: 4px;
@@ -157,31 +169,69 @@
   font-size: 11px;
   color: var(--text-muted);
   font-family: 'DM Sans', sans-serif;
-  padding: 0 2px;
 }
-.num-labels {
-  justify-content: space-between;
-}
-.num-labels .active-tick {
-  color: var(--teal);
-  font-weight: 700;
-}
+.num-labels .active-tick { color: var(--teal); font-weight: 700; }
 .num-hint {
   font-size: 12px;
   color: var(--teal);
   font-family: 'DM Sans', sans-serif;
   text-align: center;
-  margin-top: 2px;
 }
 
-/* ── Submit Button ───────────────────────────────────────────────── */
+/* Quick amount buttons */
+.amount-quickset { display: flex; flex-wrap: wrap; gap: 8px; }
+.quick-btn {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 4px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 12px;
+  font-family: 'DM Sans', sans-serif;
+  transition: all 0.15s;
+}
+.quick-btn:hover, .quick-btn.active {
+  border-color: var(--teal);
+  color: var(--teal);
+  background: rgba(0,180,216,0.08);
+}
+
+/* ── Profile Summary ───────────────────────────────────────────────── */
+.profile-summary {
+  background: linear-gradient(135deg, rgba(0,180,216,0.08), rgba(240,165,0,0.05));
+  border: 1px solid rgba(0,180,216,0.2);
+  border-radius: 14px;
+  padding: 18px 20px;
+}
+.ps-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+}
+.ps-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+@media (min-width: 500px) {
+  .ps-grid { grid-template-columns: repeat(6, 1fr); }
+}
+.ps-item { display: flex; flex-direction: column; gap: 3px; align-items: center; text-align: center; }
+.ps-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; }
+.ps-value { font-size: 13px; font-weight: 600; color: var(--text); }
+
+/* ── Submit ────────────────────────────────────────────────────────── */
 .submit-btn {
   background: linear-gradient(135deg, var(--teal), #00b8d9);
   color: #fff;
   border: none;
   border-radius: 14px;
   padding: 18px;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
   cursor: pointer;
   font-family: 'DM Sans', sans-serif;
@@ -190,35 +240,29 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
-  margin-top: 8px;
   letter-spacing: 0.3px;
 }
 .submit-btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0,180,216,0.4);
+  box-shadow: 0 8px 28px rgba(0,180,216,0.4);
 }
-.submit-btn:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-  transform: none;
-}
-.submit-btn.loading {
-  background: linear-gradient(135deg, #0a4a5a, #0a3a4a);
-}
+.submit-btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+.submit-btn.loading { background: linear-gradient(135deg, #0a4a5a, #0a3a4a); }
 .spinner {
-  width: 16px;
-  height: 16px;
+  width: 18px; height: 18px;
   border: 2px solid rgba(255,255,255,0.3);
   border-top-color: #fff;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
   flex-shrink: 0;
 }
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
 
-@media (max-width: 500px) {
-  .invest-group { grid-template-columns: repeat(2, 1fr); }
-  .option-group { grid-template-columns: repeat(3, 1fr); }
+.form-disclaimer {
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: 'DM Sans', sans-serif;
+  line-height: 1.5;
 }
