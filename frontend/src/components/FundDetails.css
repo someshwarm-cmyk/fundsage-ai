@@ -27,3 +27,17 @@
 }
 .fdo-title { font-size: 12px; font-weight: 700; color: #2DCE89; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
 .fdo-text  { font-size: 13px; color: var(--text-muted); line-height: 1.7; font-family: 'DM Sans', sans-serif; margin: 0; }
+/* ── Fund Manager Card ── */
+.fd-manager-card { display: flex; align-items: center; gap: 14px; background: linear-gradient(135deg, rgba(0,180,216,0.08), rgba(0,180,216,0.03)); border: 1px solid rgba(0,180,216,0.25); border-radius: 12px; padding: 14px 18px; margin-bottom: 4px; }
+.fdm-icon { font-size: 28px; flex-shrink: 0; }
+.fdm-info { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+.fdm-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; font-family: 'DM Sans', sans-serif; }
+.fdm-name  { font-size: 15px; font-weight: 700; color: var(--text); }
+.fdm-rating { display: flex; flex-direction: column; gap: 2px; align-items: flex-end; flex-shrink: 0; }
+.fdm-rating-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-family: 'DM Sans', sans-serif; }
+.fdm-rating-val   { font-size: 13px; font-weight: 600; color: #F0A500; }
+
+/* ── Investment Objective ── */
+.fd-objective-card { background: rgba(45,206,137,0.04); border: 1px solid rgba(45,206,137,0.2); border-radius: 12px; padding: 14px 18px; margin-bottom: 4px; }
+.fdo-title { font-size: 12px; font-weight: 700; color: #2DCE89; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+.fdo-text  { font-size: 13px; color: var(--text-muted); line-height: 1.7; font-family: 'DM Sans', sans-serif; margin: 0; }
