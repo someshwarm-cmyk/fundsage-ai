@@ -13,14 +13,33 @@ export default function FundCard({ fund, rank, isSelected, onClick }) {
   const erColor = (er) =>
     er < 0.5 ? '#2DCE89' : er < 1.0 ? '#F0A500' : '#F5365C';
 
+  const fmtAum = (aum) => {
+    if (!aum) return null;
+    // Kuvera AUM is in crores * 100 (i.e. lakhs)
+    const cr = aum / 100;
+    if (cr >= 10000) return `₹${(cr / 10000).toFixed(1)}L Cr`;
+    return `₹${cr.toFixed(0)} Cr`;
+  };
+
+  const ratingStars = (r) => {
+    if (!r) return null;
+    return '⭐'.repeat(Math.min(Number(r), 5));
+  };
+
   return (
     <div className={`fund-card ${isSelected ? 'selected' : ''}`} onClick={onClick}>
+
+      {/* Top row — rank badge + AI score */}
       <div className="fc-top">
         <span className={`rank-badge rank-${badge.cls}`}>{badge.label}</span>
         <span className="fc-score">{fund.recommendation_score?.toFixed(0)}</span>
       </div>
+
+      {/* Fund name */}
       <h4 className="fc-name">{fund.scheme_name}</h4>
       <p className="fc-house">{fund.fund_house || fund.scheme_category || ''}</p>
+
+      {/* Returns grid */}
       <div className="fc-returns">
         {[
           { label: '1Y',  val: fund.returns_1yr  },
@@ -36,6 +55,8 @@ export default function FundCard({ fund, rank, isSelected, onClick }) {
           </div>
         ))}
       </div>
+
+      {/* Risk bar */}
       <div className="fc-risk">
         <div className="fc-risk-bar">
           <div style={{
@@ -46,6 +67,32 @@ export default function FundCard({ fund, rank, isSelected, onClick }) {
         </div>
         <span className="fc-risk-label">Risk {fund.risk_score?.toFixed(1)}/10</span>
       </div>
+
+      {/* Fund Manager */}
+      {fund.fund_manager && (
+        <div className="fc-manager">
+          <span className="fc-manager-icon">👤</span>
+          <span className="fc-manager-name">{fund.fund_manager}</span>
+        </div>
+      )}
+
+      {/* AUM + Rating row */}
+      {(fund.aum || fund.fund_rating) && (
+        <div className="fc-meta-row">
+          {fund.aum && (
+            <div className="fc-aum">
+              💼 <span>{fmtAum(fund.aum)}</span>
+            </div>
+          )}
+          {fund.fund_rating && (
+            <div className="fc-rating">
+              {ratingStars(fund.fund_rating)}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* NAV + Expense Ratio footer */}
       <div className="fc-footer">
         <div className="fc-nav">
           NAV ₹{fund.nav?.toFixed(2)}
@@ -59,6 +106,7 @@ export default function FundCard({ fund, rank, isSelected, onClick }) {
           </div>
         )}
       </div>
+
     </div>
   );
 }

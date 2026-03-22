@@ -334,14 +334,11 @@ async def fetch_nav_data(scheme_code: str) -> dict:
         pass
     return None
 
-# ─── Expense Ratio from Kuvera API ───────────────────────────────────────────
-async def fetch_expense_ratio(isin: str) -> Optional[float]:
-    """
-    Fetch expense ratio from Kuvera via mf.captnemo.in.
-    Silently returns None if not found — not all funds are on Kuvera.
-    """
+# ─── Kuvera API — fund manager, AUM, rating, expense ratio ───────────────────
+async def fetch_kuvera_data(isin: str) -> dict:
+    """Fetch full fund details from Kuvera via mf.captnemo.in — follows redirect."""
     if not isin:
-        return None
+        return {}
     try:
         async with httpx.AsyncClient(timeout=10.0, follow_redirects=True) as c:
             resp = await c.get(f"https://mf.captnemo.in/kuvera/{isin.strip()}")
@@ -349,14 +346,19 @@ async def fetch_expense_ratio(isin: str) -> Optional[float]:
                 data = resp.json()
                 if isinstance(data, list) and len(data) > 0:
                     data = data[0]
-                er = data.get("expense_ratio")
-                if er is not None:
-                    return round(float(er), 2)
+                return {
+                    "expense_ratio":        round(float(data["expense_ratio"]), 2) if data.get("expense_ratio") else None,
+                    "fund_manager":         data.get("fund_manager") or None,
+                    "aum":                  round(float(data["aum"]), 2) if data.get("aum") else None,
+                    "fund_rating":          data.get("fund_rating") or None,
+                    "investment_objective": data.get("investment_objective") or None,
+                    "category":             data.get("category") or None,
+                }
     except Exception:
-        pass  # Silently ignore — not all funds are on Kuvera
-    return None
-            
-    # ─── NAV helpers ──────────────────────────────────────────────────────────────
+        pass
+    return {}
+
+# ─── NAV helpers ──────────────────────────────────────────────────────────────
 def build_nav_lookup(nav_data: list) -> dict:
     lookup = {}
     for entry in nav_data:
@@ -596,26 +598,30 @@ async def recommend_funds(profile: UserProfile):
         if not history or len(history) < 10:
             return None
 
-        meta          = data.get("meta", {})
-        returns       = get_returns_from_history(history, fund_type)
-        isin          = meta.get("isin_growth", "")
-        expense_ratio = await fetch_expense_ratio(isin)
+        meta    = data.get("meta", {})
+        returns = get_returns_from_history(history, fund_type)
+        isin    = meta.get("isin_growth", "")
+        kuvera  = await fetch_kuvera_data(isin)
 
         fund = {
-            "scheme_code":     info["code"],
-            "scheme_name":     info["name"],
-            "fund_type":       profile.fund_type,
-            "nav":             float(history[0]["nav"]),
-            "nav_date":        history[0]["date"],
-            "returns_1yr":     returns["1yr"],
-            "returns_3yr":     returns["3yr"],
-            "returns_5yr":     returns["5yr"],
-            "returns_10yr":    returns["10yr"],
-            "risk_score":      calculate_risk_score(history),
-            "fund_house":      meta.get("fund_house", ""),
-            "scheme_category": meta.get("scheme_category", ""),
-            "expense_ratio":   expense_ratio,
-            "isin":            isin,
+            "scheme_code":          info["code"],
+            "scheme_name":          info["name"],
+            "fund_type":            profile.fund_type,
+            "nav":                  float(history[0]["nav"]),
+            "nav_date":             history[0]["date"],
+            "returns_1yr":          returns["1yr"],
+            "returns_3yr":          returns["3yr"],
+            "returns_5yr":          returns["5yr"],
+            "returns_10yr":         returns["10yr"],
+            "risk_score":           calculate_risk_score(history),
+            "fund_house":           meta.get("fund_house", ""),
+            "scheme_category":      meta.get("scheme_category", ""),
+            "expense_ratio":        kuvera.get("expense_ratio"),
+            "fund_manager":         kuvera.get("fund_manager"),
+            "aum":                  kuvera.get("aum"),
+            "fund_rating":          kuvera.get("fund_rating"),
+            "investment_objective": kuvera.get("investment_objective"),
+            "isin":                 isin,
         }
 
         score, confidence, shap_dict, base_val = model_predict_and_explain(fund, profile)
@@ -721,21 +727,25 @@ async def get_fund_details(scheme_code: str):
         raise HTTPException(status_code=404, detail="Fund not found")
     meta          = data.get("meta", {})
     history       = data.get("data", [])
-    isin          = meta.get("isin_growth", "")
-    expense_ratio = await fetch_expense_ratio(isin)
+    isin   = meta.get("isin_growth", "")
+    kuvera = await fetch_kuvera_data(isin)
     return {
-        "scheme_code":       scheme_code,
-        "scheme_name":       meta.get("scheme_name", ""),
-        "fund_house":        meta.get("fund_house", ""),
-        "scheme_type":       meta.get("scheme_type", ""),
-        "scheme_category":   meta.get("scheme_category", ""),
-        "isin_growth":       isin,
-        "isin_div":          meta.get("isin_div_reinvestment", ""),
-        "latest_nav":        float(history[0]["nav"]) if history else 0,
-        "nav_date":          history[0]["date"] if history else "",
-        "total_nav_records": len(history),
-        "inception_date":    history[-1]["date"] if history else "",
-        "expense_ratio":     expense_ratio,
+        "scheme_code":          scheme_code,
+        "scheme_name":          meta.get("scheme_name", ""),
+        "fund_house":           meta.get("fund_house", ""),
+        "scheme_type":          meta.get("scheme_type", ""),
+        "scheme_category":      meta.get("scheme_category", ""),
+        "isin_growth":          isin,
+        "isin_div":             meta.get("isin_div_reinvestment", ""),
+        "latest_nav":           float(history[0]["nav"]) if history else 0,
+        "nav_date":             history[0]["date"] if history else "",
+        "total_nav_records":    len(history),
+        "inception_date":       history[-1]["date"] if history else "",
+        "expense_ratio":        kuvera.get("expense_ratio"),
+        "fund_manager":         kuvera.get("fund_manager"),
+        "aum":                  kuvera.get("aum"),
+        "fund_rating":          kuvera.get("fund_rating"),
+        "investment_objective": kuvera.get("investment_objective"),
         "documents": {
             "factsheet": "https://www.amfiindia.com/research-information/fund-factsheet",
             "sid":       "https://www.amfiindia.com/research-information/sid",
