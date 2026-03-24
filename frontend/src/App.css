@@ -110,3 +110,17 @@ h1,h2,h3,h4,h5 { font-weight: 700; line-height: 1.2; }
   max-width: 1280px; margin: 0 auto;
 }
 .app-footer p { font-size: 11px; color: var(--text-muted); font-family: 'DM Sans', sans-serif; line-height: 1.8; }
+/* ── Header User Avatar ── */
+.header-right { display: flex; align-items: center; gap: 16px; }
+.header-user {
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+  border-radius: 20px; padding: 4px 12px 4px 4px;
+  cursor: pointer; transition: all 0.2s; font-family: 'DM Sans', sans-serif;
+  font-size: 13px; color: var(--text);
+}
+.header-user:hover { border-color: #F5365C; color: #F5365C; }
+.header-user img {
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 2px solid var(--teal); object-fit: cover;
+}
