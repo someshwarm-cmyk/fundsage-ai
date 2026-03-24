@@ -1,0 +1,17 @@
+{
+  "short_name": "FundSage AI",
+  "name": "FundSage AI - Intelligent Mutual Fund Advisor",
+  "description": "Personalized mutual fund recommendations powered by Agentic AI and SHAP Explainability",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64",
+      "type": "image/x-icon"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#0A0E1A",
+  "background_color": "#0A0E1A"
+}
