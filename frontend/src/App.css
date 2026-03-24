@@ -124,3 +124,17 @@ h1,h2,h3,h4,h5 { font-weight: 700; line-height: 1.2; }
   width: 28px; height: 28px; border-radius: 50%;
   border: 2px solid var(--teal); object-fit: cover;
 }
+
+/* ── Retry / Wake up styles ── */
+.loading-retry-msg {
+  color: var(--text-muted); font-family: 'DM Sans', sans-serif;
+  font-size: 14px; text-align: center; line-height: 1.7; margin: 8px 0;
+}
+.loading-wake-bar {
+  width: 300px; height: 6px; background: rgba(255,255,255,0.08);
+  border-radius: 3px; overflow: hidden; margin-top: 12px;
+}
+.loading-wake-fill {
+  height: 100%; background: linear-gradient(90deg, var(--teal), var(--gold));
+  border-radius: 3px; transition: width 0.5s ease;
+}
