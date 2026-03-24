@@ -3,3 +3,6 @@ frontend/.env
 backend/__pycache__/
 backend/*.pyc
 backend/venv/
+*.zip
+*.tar.gz
+frontend/project.zip
