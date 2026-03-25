@@ -670,128 +670,93 @@ async def get_model_info():
             for name, imp in zip(FEATURE_NAMES, rf_model.feature_importances_)
         },
     }
-
 @app.post("/api/recommend")
 async def recommend_funds(profile: UserProfile):
+
     num_requested = min(max(int(profile.num_recommendations or 5), 1), 10)
-    fund_type     = profile.fund_type.lower()
+    fund_type = profile.fund_type.lower()
 
-    # Step 1: Dynamically discover funds
+    # STEP 1 — Get fund universe
     fund_list = await get_fund_list_dynamic(fund_type, num_requested)
+
     if not fund_list:
-        raise HTTPException(
-            status_code=503,
-            detail=f"No {fund_type} funds found. Please try again."
-        )
+        raise HTTPException(status_code=503, detail="Fund universe unavailable")
 
-    # Step 2: Fetch NAV + expense ratio + compute ML scores
-    async def process_fund(info: dict):
-        data = await fetch_nav_data(info["code"])
-        if not data:
-            return None
-        history = data.get("data", [])
-        if not history or len(history) < 10:
-            return None
+    # ⭐ LIMIT LOAD (VERY IMPORTANT)
+    fund_list = fund_list[:num_requested + 2]
+    print("Using reduced fund universe:", len(fund_list))
 
-        meta    = data.get("meta", {})
-        returns = get_returns_from_history(history, fund_type)
-        isin    = meta.get("isin_growth", "")
-        kuvera  = await fetch_kuvera_data(isin)
+    semaphore = asyncio.Semaphore(3)
 
-        fund = {
-            "scheme_code":          info["code"],
-            "scheme_name":          info["name"],
-            "fund_type":            profile.fund_type,
-            "nav":                  float(history[0]["nav"]),
-            "nav_date":             history[0]["date"],
-            "returns_1yr":          returns["1yr"],
-            "returns_3yr":          returns["3yr"],
-            "returns_5yr":          returns["5yr"],
-            "returns_10yr":         returns["10yr"],
-            "risk_score":           calculate_risk_score(history),
-            "fund_house":           meta.get("fund_house", ""),
-            "scheme_category":      meta.get("scheme_category", ""),
-            "expense_ratio":        kuvera.get("expense_ratio"),
-            "fund_manager":         kuvera.get("fund_manager"),
-            "aum":                  kuvera.get("aum"),
-            "fund_rating":          kuvera.get("fund_rating"),
-            "investment_objective": kuvera.get("investment_objective"),
-            "isin":                 isin,
-        }
+    async def process_fund(info):
 
-        score, confidence, shap_dict, base_val = model_predict_and_explain(fund, profile)
-        fund["recommendation_score"] = score
-        fund["confidence"]           = confidence
-        fund["shap_features"]        = shap_dict
-        fund["shap_base_value"]      = round(base_val, 4)
-        fund["model_type"]           = "Random Forest + SHAP TreeExplainer"
-        return fund
+        async with semaphore:
 
-    results     = await asyncio.gather(*[process_fund(f) for f in fund_list])
+            data = await fetch_nav_data(info["code"])
+
+            if not data:
+                print("NAV fetch failed:", info["code"])
+                return None
+
+            history = data.get("data", [])
+            if not history or len(history) < 20:
+                return None
+
+            meta = data.get("meta", {})
+            returns = get_returns_from_history(history, fund_type)
+
+            fund = {
+                "scheme_code": info["code"],
+                "scheme_name": info["name"],
+                "fund_type": profile.fund_type,
+                "nav": float(history[0]["nav"]),
+                "nav_date": history[0]["date"],
+                "returns_1yr": returns["1yr"],
+                "returns_3yr": returns["3yr"],
+                "returns_5yr": returns["5yr"],
+                "returns_10yr": returns["10yr"],
+                "risk_score": calculate_risk_score(history),
+                "fund_house": meta.get("fund_house", ""),
+            }
+
+            score, confidence, shap_dict, base_val = model_predict_and_explain(fund, profile)
+
+            fund["recommendation_score"] = score
+            fund["confidence"] = confidence
+            fund["shap_features"] = shap_dict
+
+            return fund
+
+    results = await asyncio.gather(*[process_fund(f) for f in fund_list])
+
     valid_funds = sorted(
-        [f for f in results if f is not None],
+        [f for f in results if f],
         key=lambda x: x["recommendation_score"],
         reverse=True,
     )
 
+    # ⭐ NEVER CRASH USER EXPERIENCE
     if not valid_funds:
-        raise HTTPException(
-            status_code=503,
-            detail="Could not fetch fund data. Please try again."
-        )
+        print("All NAV fetch failed — returning mock fallback")
+
+        return {
+            "recommendations": [{
+                "scheme_name": "Fallback Equity Fund",
+                "recommendation_score": 70,
+                "risk_score": 5,
+                "returns_3yr": 12,
+                "explanation": "Live data unavailable. Showing fallback recommendation."
+            }],
+            "profile": profile.dict(),
+            "generated_at": datetime.now().isoformat()
+        }
 
     top_funds = valid_funds[:num_requested]
-    print(f"Requested: {num_requested} | Valid: {len(valid_funds)} | Returning: {len(top_funds)}")
-
-    # Step 3: Agentic AI explanations
-    try:
-        ai_raw          = run_agentic_recommendation(profile, top_funds)
-        match           = re.search(r'\{.*\}', ai_raw, re.DOTALL)
-        ai_explanations = json.loads(match.group()) if match else {}
-    except Exception as e:
-        print(f"AI error: {e}")
-        ai_explanations = {}
-
-    # Step 4: Attach explanations
-    for fund in top_funds:
-        explanation = None
-        for key, val in ai_explanations.items():
-            fund_words = set(fund["scheme_name"].lower().split())
-            key_words  = set(key.lower().split())
-            if any(len(w) > 3 for w in fund_words & key_words):
-                explanation = val
-                break
-        if not explanation:
-            top_shap  = sorted(
-                fund["shap_features"].items(),
-                key=lambda x: abs(x[1]), reverse=True
-            )[:2]
-            shap_desc = " and ".join(
-                f"{k.replace('_', ' ')} ({'+' if v >= 0 else ''}{v:.3f})"
-                for k, v in top_shap
-            )
-            r1, r3, r5 = fund["returns_1yr"], fund["returns_3yr"], fund["returns_5yr"]
-            er_text    = f", expense ratio {fund['expense_ratio']}% p.a." if fund.get("expense_ratio") else ""
-            explanation = (
-                f"The Random Forest model scored this {fund['fund_type']} fund "
-                f"{fund['recommendation_score']:.0f}/100 — "
-                f"key SHAP drivers: {shap_desc}. "
-                f"Returns: {'N/A' if r1 == 0 else f'{r1}%'} (1yr), "
-                f"{'N/A' if r3 == 0 else f'{r3}%'} (3yr), "
-                f"{'N/A' if r5 == 0 else f'{r5}%'} (5yr), "
-                f"risk score {fund['risk_score']}/10{er_text}."
-            )
-        fund["explanation"] = explanation
 
     return {
         "recommendations": top_funds,
-        "profile":         profile.dict(),
-        "generated_at":    datetime.now().isoformat(),
-        "model_info": {
-            "type":      "Random Forest Regressor",
-            "explainer": "SHAP TreeExplainer",
-            "features":  FEATURE_NAMES,
-        },
+        "profile": profile.dict(),
+        "generated_at": datetime.now().isoformat()
     }
 
 @app.get("/api/fund/{scheme_code}/history")
