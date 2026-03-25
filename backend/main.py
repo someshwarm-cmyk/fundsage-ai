@@ -39,7 +39,7 @@ class UserProfile(BaseModel):
     investment_amount:   Optional[float] = 10000
     num_recommendations: Optional[int]   = 5
 
-# ─── Dynamic Search Queries (15 per type for guaranteed 10 results) ───────────
+# ─── Dynamic Search Queries (15 per type) ─────────────────────────────────────
 FUND_SEARCH_QUERIES = {
     "equity": [
         "Axis Bluechip Direct Growth",
@@ -56,7 +56,7 @@ FUND_SEARCH_QUERIES = {
         "DSP Midcap Direct Growth",
         "SBI Magnum Midcap Direct Growth",
         "Nippon India Growth Direct Growth",
-        "Tata Large Cap Direct Growth",
+        "Parag Parikh Flexi Cap Direct Growth",
     ],
     "debt": [
         "HDFC Short Term Debt Direct Growth",
@@ -178,6 +178,87 @@ FEATURE_NAMES = [
     "risk_score", "risk_appetite_num", "time_horizon_num",
     "risk_match_score", "fund_type_match", "investment_amount_log",
 ]
+
+# ─── Fallback Scheme Codes (used when MFAPI search is down) ──────────────────
+FALLBACK_CODES = {
+    "equity": [
+        ("120505", "Axis Midcap Fund - Direct Plan - Growth"),
+        ("119598", "Axis Bluechip Fund - Direct Plan - Growth"),
+        ("118989", "Mirae Asset Large Cap Fund - Direct Plan - Growth"),
+        ("120716", "Parag Parikh Flexi Cap Fund - Direct Plan - Growth"),
+        ("125494", "Canara Robeco Bluechip Equity Fund - Direct Plan - Growth"),
+        ("120503", "Axis Small Cap Fund - Direct Plan - Growth"),
+        ("118701", "SBI Bluechip Fund - Direct Plan - Growth"),
+        ("119775", "HDFC Top 100 Fund - Direct Plan - Growth"),
+        ("120828", "Kotak Emerging Equity Fund - Direct Plan - Growth"),
+        ("118255", "Nippon India Large Cap Fund - Direct Plan - Growth"),
+        ("119270", "DSP Midcap Fund - Direct Plan - Growth"),
+        ("120507", "Axis Long Term Equity Fund - Direct Plan - Growth"),
+        ("118550", "Franklin India Bluechip Fund - Direct Plan - Growth"),
+        ("120206", "Mirae Asset Emerging Bluechip Fund - Direct Plan - Growth"),
+        ("119093", "HDFC Mid-Cap Opportunities Fund - Direct Plan - Growth"),
+    ],
+    "debt": [
+        ("119016", "HDFC Short Term Debt Fund - Direct Plan - Growth"),
+        ("119237", "Aditya Birla SL Corporate Bond Fund - Direct Plan - Growth"),
+        ("120594", "Axis Short Term Fund - Direct Plan - Growth"),
+        ("118477", "ICICI Pru Short Term Fund - Direct Plan - Growth"),
+        ("119364", "Kotak Bond Short Term Fund - Direct Plan - Growth"),
+        ("118825", "SBI Short Term Debt Fund - Direct Plan - Growth"),
+        ("120831", "Nippon India Short Term Fund - Direct Plan - Growth"),
+        ("118632", "IDFC Bond Fund Short Term - Direct Plan - Growth"),
+        ("120832", "Nippon India Low Duration Fund - Direct Plan - Growth"),
+        ("119261", "Franklin India STIP - Direct Plan - Growth"),
+    ],
+    "hybrid": [
+        ("118834", "SBI Equity Hybrid Fund - Direct Plan - Growth"),
+        ("119247", "HDFC Hybrid Equity Fund - Direct Plan - Growth"),
+        ("120716", "Canara Robeco Equity Hybrid Fund - Direct Plan - Growth"),
+        ("118989", "ICICI Pru Equity and Debt Fund - Direct Plan - Growth"),
+        ("119598", "Kotak Equity Hybrid Fund - Direct Plan - Growth"),
+        ("120594", "Axis Equity Hybrid Fund - Direct Plan - Growth"),
+        ("118701", "Mirae Asset Hybrid Equity Fund - Direct Plan - Growth"),
+        ("119270", "DSP Equity and Bond Fund - Direct Plan - Growth"),
+        ("118477", "Aditya Birla SL Equity Hybrid 95 - Direct Plan - Growth"),
+        ("118255", "Franklin India Equity Hybrid Fund - Direct Plan - Growth"),
+    ],
+    "gold": [
+        ("119788", "SBI Gold Fund - Direct Plan - Growth"),
+        ("120473", "Axis Gold Fund - Direct Plan - Growth"),
+        ("118663", "Nippon India Gold Savings Fund - Direct Plan - Growth"),
+        ("119761", "HDFC Gold Fund - Direct Plan - Growth"),
+        ("119177", "Kotak Gold Fund - Direct Plan - Growth"),
+        ("118632", "ICICI Pru Regular Gold Savings Fund - Direct Plan - Growth"),
+        ("119016", "Aditya Birla SL Gold Fund - Direct Plan - Growth"),
+        ("119364", "Invesco India Gold Fund - Direct Plan - Growth"),
+        ("118825", "DSP World Gold Fund - Direct Plan - Growth"),
+        ("120831", "Quantum Gold Savings Fund - Direct Plan - Growth"),
+    ],
+    "index": [
+        ("120716", "Axis Nifty 50 Index Fund - Direct Plan - Growth"),
+        ("118989", "HDFC Index Fund Nifty 50 Plan - Direct Plan - Growth"),
+        ("119598", "SBI Nifty Index Fund - Direct Plan - Growth"),
+        ("120505", "ICICI Pru Nifty 50 Index Fund - Direct Plan - Growth"),
+        ("118701", "UTI Nifty 50 Index Fund - Direct Plan - Growth"),
+        ("119270", "Nippon India Index Fund Nifty 50 - Direct Plan - Growth"),
+        ("120473", "Motilal Oswal Nifty 50 Index Fund - Direct Plan - Growth"),
+        ("119761", "Kotak Nifty 50 Index Fund - Direct Plan - Growth"),
+        ("119788", "Mirae Asset Nifty 50 ETF FoF - Direct Plan - Growth"),
+        ("118255", "DSP Nifty 50 Index Fund - Direct Plan - Growth"),
+    ],
+    "others": [
+        ("118989", "SBI Technology Opportunities Fund - Direct Plan - Growth"),
+        ("119598", "Nippon India Pharma Fund - Direct Plan - Growth"),
+        ("120505", "ICICI Pru Infrastructure Fund - Direct Plan - Growth"),
+        ("118701", "Franklin India Technology Fund - Direct Plan - Growth"),
+        ("120716", "Mirae Asset Healthcare Fund - Direct Plan - Growth"),
+        ("119270", "DSP Healthcare Fund - Direct Plan - Growth"),
+        ("118477", "Aditya Birla SL Digital India Fund - Direct Plan - Growth"),
+        ("120473", "Tata Digital India Fund - Direct Plan - Growth"),
+        ("119761", "ICICI Pru Banking and Financial Services - Direct Plan - Growth"),
+        ("119016", "SBI Banking and Financial Services Fund - Direct Plan - Growth"),
+    ],
+}
 
 rf_model     = None
 rf_explainer = None
@@ -303,88 +384,6 @@ def model_predict_and_explain(fund: dict, profile: UserProfile) -> tuple:
     confidence = round((valid / 4.0) * 100.0, 2)
     return score, confidence, shap_dict, base_value
 
-
-# ─── Fallback Scheme Codes (used when MFAPI search is down) ──────────────────
-FALLBACK_CODES = {
-    "equity": [
-        ("120505", "Axis Midcap Fund - Direct Plan - Growth"),
-        ("119598", "Axis Bluechip Fund - Direct Plan - Growth"),
-        ("118989", "Mirae Asset Large Cap Fund - Direct Plan - Growth"),
-        ("120716", "Parag Parikh Flexi Cap Fund - Direct Plan - Growth"),
-        ("125494", "Canara Robeco Bluechip Equity Fund - Direct Plan - Growth"),
-        ("120503", "Axis Small Cap Fund - Direct Plan - Growth"),
-        ("118701", "SBI Bluechip Fund - Direct Plan - Growth"),
-        ("119775", "HDFC Top 100 Fund - Direct Plan - Growth"),
-        ("120828", "Kotak Emerging Equity Fund - Direct Plan - Growth"),
-        ("118255", "Nippon India Large Cap Fund - Direct Plan - Growth"),
-        ("119270", "DSP Midcap Fund - Direct Plan - Growth"),
-        ("120507", "Axis Long Term Equity Fund - Direct Plan - Growth"),
-        ("118550", "Franklin India Bluechip Fund - Direct Plan - Growth"),
-        ("120206", "Mirae Asset Emerging Bluechip Fund - Direct Plan - Growth"),
-        ("119093", "HDFC Mid-Cap Opportunities Fund - Direct Plan - Growth"),
-    ],
-    "debt": [
-        ("119016", "HDFC Short Term Debt Fund - Direct Plan - Growth"),
-        ("119237", "Aditya Birla SL Corporate Bond Fund - Direct Plan - Growth"),
-        ("120594", "Axis Short Term Fund - Direct Plan - Growth"),
-        ("118477", "ICICI Pru Short Term Fund - Direct Plan - Growth"),
-        ("119364", "Kotak Bond Short Term Fund - Direct Plan - Growth"),
-        ("118825", "SBI Short Term Debt Fund - Direct Plan - Growth"),
-        ("120831", "Nippon India Short Term Fund - Direct Plan - Growth"),
-        ("118632", "IDFC Bond Fund Short Term - Direct Plan - Growth"),
-        ("120832", "Nippon India Low Duration Fund - Direct Plan - Growth"),
-        ("119261", "Franklin India STIP - Direct Plan - Growth"),
-    ],
-    "hybrid": [
-        ("118834", "SBI Equity Hybrid Fund - Direct Plan - Growth"),
-        ("119247", "HDFC Hybrid Equity Fund - Direct Plan - Growth"),
-        ("120716", "Canara Robeco Equity Hybrid Fund - Direct Plan - Growth"),
-        ("118989", "ICICI Pru Equity and Debt Fund - Direct Plan - Growth"),
-        ("119598", "Kotak Equity Hybrid Fund - Direct Plan - Growth"),
-        ("120594", "Axis Equity Hybrid Fund - Direct Plan - Growth"),
-        ("118701", "Mirae Asset Hybrid Equity Fund - Direct Plan - Growth"),
-        ("119270", "DSP Equity and Bond Fund - Direct Plan - Growth"),
-        ("118477", "Aditya Birla SL Equity Hybrid 95 - Direct Plan - Growth"),
-        ("118255", "Franklin India Equity Hybrid Fund - Direct Plan - Growth"),
-    ],
-    "gold": [
-        ("119788", "SBI Gold Fund - Direct Plan - Growth"),
-        ("120473", "Axis Gold Fund - Direct Plan - Growth"),
-        ("118663", "Nippon India Gold Savings Fund - Direct Plan - Growth"),
-        ("119761", "HDFC Gold Fund - Direct Plan - Growth"),
-        ("119177", "Kotak Gold Fund - Direct Plan - Growth"),
-        ("118632", "ICICI Pru Regular Gold Savings Fund - Direct Plan - Growth"),
-        ("119016", "Aditya Birla SL Gold Fund - Direct Plan - Growth"),
-        ("119364", "Invesco India Gold Fund - Direct Plan - Growth"),
-        ("118825", "DSP World Gold Fund - Direct Plan - Growth"),
-        ("120831", "Quantum Gold Savings Fund - Direct Plan - Growth"),
-    ],
-    "index": [
-        ("120716", "Axis Nifty 50 Index Fund - Direct Plan - Growth"),
-        ("118989", "HDFC Index Fund Nifty 50 Plan - Direct Plan - Growth"),
-        ("119598", "SBI Nifty Index Fund - Direct Plan - Growth"),
-        ("120505", "ICICI Pru Nifty 50 Index Fund - Direct Plan - Growth"),
-        ("118701", "UTI Nifty 50 Index Fund - Direct Plan - Growth"),
-        ("119270", "Nippon India Index Fund Nifty 50 - Direct Plan - Growth"),
-        ("120473", "Motilal Oswal Nifty 50 Index Fund - Direct Plan - Growth"),
-        ("119761", "Kotak Nifty 50 Index Fund - Direct Plan - Growth"),
-        ("119788", "Mirae Asset Nifty 50 ETF FoF - Direct Plan - Growth"),
-        ("118255", "DSP Nifty 50 Index Fund - Direct Plan - Growth"),
-    ],
-    "others": [
-        ("118989", "SBI Technology Opportunities Fund - Direct Plan - Growth"),
-        ("119598", "Nippon India Pharma Fund - Direct Plan - Growth"),
-        ("120505", "ICICI Pru Infrastructure Fund - Direct Plan - Growth"),
-        ("118701", "Franklin India Technology Fund - Direct Plan - Growth"),
-        ("120716", "Mirae Asset Healthcare Fund - Direct Plan - Growth"),
-        ("119270", "DSP Healthcare Fund - Direct Plan - Growth"),
-        ("118477", "Aditya Birla SL Digital India Fund - Direct Plan - Growth"),
-        ("120473", "Tata Digital India Fund - Direct Plan - Growth"),
-        ("119761", "ICICI Pru Banking and Financial Services - Direct Plan - Growth"),
-        ("119016", "SBI Banking and Financial Services Fund - Direct Plan - Growth"),
-    ],
-}
-
 # ─── MFAPI Helpers ────────────────────────────────────────────────────────────
 async def search_funds_by_query(query: str) -> list:
     url = f"https://api.mfapi.in/mf/search?q={query.replace(' ', '+')}"
@@ -410,37 +409,19 @@ async def search_funds_by_query(query: str) -> list:
         pass
     return []
 
-async def fetch_nav_data(code: str):
-
-    url = f"https://api.mfapi.in/mf/{code}"
-
+async def fetch_nav_data(scheme_code: str) -> dict:
+    url = f"https://api.mfapi.in/mf/{scheme_code}"
     try:
-        print("📡 Fetching NAV:", code)
+        async with httpx.AsyncClient(timeout=20.0) as c:
+            resp = await c.get(url)
+            if resp.status_code == 200:
+                return resp.json()
+    except Exception:
+        pass
+    return None
 
-        async with httpx.AsyncClient(timeout=30) as client:
-            response = await client.get(url)
-
-        print("✅ Status:", response.status_code)
-
-        if response.status_code != 200:
-            print("❌ MFAPI non-200:", response.text[:120])
-            return None
-
-        data = response.json()
-
-        if "data" not in data:
-            print("❌ No NAV history:", code)
-            return None
-
-        return data
-
-    except Exception as e:
-        print("🔥 NAV Fetch Exception:", code, str(e))
-        return None
-        
 # ─── Kuvera API — fund manager, AUM, rating, expense ratio ───────────────────
 async def fetch_kuvera_data(isin: str) -> dict:
-    """Fetch full fund details from Kuvera via mf.captnemo.in — follows redirect."""
     if not isin:
         return {}
     try:
@@ -546,18 +527,18 @@ async def get_fund_list_dynamic(fund_type: str, num_needed: int) -> list:
         if len(fund_list) >= num_needed + 5:
             break
     print(f"Dynamic search: found {len(fund_list)} valid {fund_type} funds for {num_needed} requested")
-
-    # ---- FALLBACK LOGIC ----
+    # Fallback when MFAPI search is down
     if len(fund_list) == 0:
-        print("⚠️ MFAPI search failed — using fallback scheme codes")
+        print(f"WARNING: MFAPI search down — using fallback scheme codes for {fund_type}")
         fallback = FALLBACK_CODES.get(fund_type.lower(), [])
-        for code, name in fallback[:num_needed+5]:
+        for code, name in fallback[:num_needed + 5]:
             fund_list.append({"code": code, "name": name})
-
+        print(f"Fallback: loaded {len(fund_list)} hardcoded funds")
     return fund_list
 
 # ─── Agentic AI ───────────────────────────────────────────────────────────────
-def run_agentic_recommendation(profile: UserProfile, funds_data: list) -> str:
+def run_agentic_recommendation(profile: UserProfile, funds_data: list) -> dict:
+    """Returns dict of {fund_name: explanation_string}"""
     fund_summaries = [
         {
             "name":          f["scheme_name"],
@@ -577,6 +558,7 @@ def run_agentic_recommendation(profile: UserProfile, funds_data: list) -> str:
     ]
 
     # Agent 1: Planner
+    strategy = {}
     try:
         planner = client.chat.completions.create(
             model="llama3-8b-8192",
@@ -595,13 +577,14 @@ def run_agentic_recommendation(profile: UserProfile, funds_data: list) -> str:
             ],
             max_tokens=250, temperature=0.2,
         )
-        raw      = planner.choices[0].message.content
-        match    = re.search(r'\{.*?\}', raw, re.DOTALL)
+        raw   = planner.choices[0].message.content
+        match = re.search(r'\{.*?\}', raw, re.DOTALL)
         strategy = json.loads(match.group()) if match else {}
     except Exception:
         strategy = {"priority_metric": "returns", "risk_tolerance_score": 5}
 
     # Agent 2: Analyst
+    ranked = []
     try:
         analyst = client.chat.completions.create(
             model="llama3-8b-8192",
@@ -620,8 +603,8 @@ def run_agentic_recommendation(profile: UserProfile, funds_data: list) -> str:
             ],
             max_tokens=800, temperature=0.2,
         )
-        raw    = analyst.choices[0].message.content
-        match  = re.search(r'\[.*?\]', raw, re.DOTALL)
+        raw   = analyst.choices[0].message.content
+        match = re.search(r'\[.*?\]', raw, re.DOTALL)
         ranked = json.loads(match.group()) if match else []
     except Exception:
         ranked = []
@@ -648,9 +631,24 @@ def run_agentic_recommendation(profile: UserProfile, funds_data: list) -> str:
             ],
             max_tokens=1500, temperature=0.4,
         )
-        return explainer_agent.choices[0].message.content
+        raw   = explainer_agent.choices[0].message.content
+        match = re.search(r'\{.*\}', raw, re.DOTALL)
+        if match:
+            return json.loads(match.group())
     except Exception:
-        return "{}"
+        pass
+    return {}
+
+def generate_fallback_explanation(fund: dict) -> str:
+    top     = sorted(fund["shap_features"].items(), key=lambda x: abs(x[1]), reverse=True)[:2]
+    top_str = " and ".join([f"{k} ({v:+.3f})" for k, v in top])
+    er_text = f", expense ratio {fund.get('expense_ratio')}% p.a." if fund.get("expense_ratio") else ""
+    return (
+        f"The Random Forest model scored this {fund.get('fund_type','equity')} fund "
+        f"{fund['recommendation_score']}/100 \u2014 key SHAP drivers: {top_str}. "
+        f"Returns: {fund['returns_1yr']}% (1yr), {fund['returns_3yr']}% (3yr), "
+        f"{fund['returns_5yr']}% (5yr), risk score {fund['risk_score']}/10{er_text}."
+    )
 
 # ─── API Routes ───────────────────────────────────────────────────────────────
 @app.get("/")
@@ -687,93 +685,99 @@ async def get_model_info():
             for name, imp in zip(FEATURE_NAMES, rf_model.feature_importances_)
         },
     }
+
 @app.post("/api/recommend")
 async def recommend_funds(profile: UserProfile):
+    if rf_model is None:
+        raise HTTPException(status_code=503, detail="Model not ready")
 
     num_requested = min(max(int(profile.num_recommendations or 5), 1), 10)
-    fund_type = profile.fund_type.lower()
+    fund_type     = profile.fund_type.lower()
 
-    # STEP 1 — Get fund universe
+    # Step 1 — Get fund universe (dynamic search + fallback)
     fund_list = await get_fund_list_dynamic(fund_type, num_requested)
-
     if not fund_list:
-        raise HTTPException(status_code=503, detail="Fund universe unavailable")
+        raise HTTPException(status_code=503, detail="Could not fetch fund data. Please try again.")
 
-    # ⭐ LIMIT LOAD (VERY IMPORTANT)
-    fund_list = fund_list[:num_requested + 2]
-    print("Using reduced fund universe:", len(fund_list))
-
+    # Step 2 — Fetch NAV + compute features + ML score (parallel, semaphore=3)
     semaphore = asyncio.Semaphore(3)
 
-    async def process_fund(info):
-
+    async def process_fund(info: dict):
         async with semaphore:
-
             data = await fetch_nav_data(info["code"])
-
             if not data:
-                print("NAV fetch failed:", info["code"])
                 return None
-
             history = data.get("data", [])
-            if not history or len(history) < 20:
+            if not history or len(history) < 10:
                 return None
-
-            meta = data.get("meta", {})
+            meta    = data.get("meta", {})
             returns = get_returns_from_history(history, fund_type)
-
+            isin    = meta.get("isin_growth", "")
+            kuvera  = await fetch_kuvera_data(isin)
+            try:
+                latest_nav = float(str(history[0]["nav"]).replace(",", ""))
+            except Exception:
+                latest_nav = 0.0
             fund = {
-                "scheme_code": info["code"],
-                "scheme_name": info["name"],
-                "fund_type": profile.fund_type,
-                "nav": float(history[0]["nav"]),
-                "nav_date": history[0]["date"],
-                "returns_1yr": returns["1yr"],
-                "returns_3yr": returns["3yr"],
-                "returns_5yr": returns["5yr"],
-                "returns_10yr": returns["10yr"],
-                "risk_score": calculate_risk_score(history),
-                "fund_house": meta.get("fund_house", ""),
+                "scheme_code":          info["code"],
+                "scheme_name":          info["name"],
+                "fund_type":            profile.fund_type,
+                "nav":                  latest_nav,
+                "nav_date":             history[0]["date"],
+                "returns_1yr":          returns["1yr"],
+                "returns_3yr":          returns["3yr"],
+                "returns_5yr":          returns["5yr"],
+                "returns_10yr":         returns["10yr"],
+                "risk_score":           calculate_risk_score(history),
+                "fund_house":           meta.get("fund_house", ""),
+                "scheme_category":      meta.get("scheme_category", ""),
+                "expense_ratio":        kuvera.get("expense_ratio"),
+                "fund_manager":         kuvera.get("fund_manager"),
+                "aum":                  kuvera.get("aum"),
+                "fund_rating":          kuvera.get("fund_rating"),
+                "investment_objective": kuvera.get("investment_objective"),
+                "isin":                 isin,
             }
-
             score, confidence, shap_dict, base_val = model_predict_and_explain(fund, profile)
-
             fund["recommendation_score"] = score
-            fund["confidence"] = confidence
-            fund["shap_features"] = shap_dict
-
+            fund["confidence"]           = confidence
+            fund["shap_features"]        = shap_dict
+            fund["shap_base_value"]      = round(base_val, 4)
+            fund["model_type"]           = "Random Forest + SHAP TreeExplainer"
             return fund
 
-    results = await asyncio.gather(*[process_fund(f) for f in fund_list])
-
+    results     = await asyncio.gather(*[process_fund(f) for f in fund_list])
     valid_funds = sorted(
-        [f for f in results if f],
+        [f for f in results if f is not None],
         key=lambda x: x["recommendation_score"],
         reverse=True,
     )
 
-    # ⭐ NEVER CRASH USER EXPERIENCE
     if not valid_funds:
-        print("All NAV fetch failed — returning mock fallback")
-
-        return {
-            "recommendations": [{
-                "scheme_name": "Fallback Equity Fund",
-                "recommendation_score": 70,
-                "risk_score": 5,
-                "returns_3yr": 12,
-                "explanation": "Live data unavailable. Showing fallback recommendation."
-            }],
-            "profile": profile.dict(),
-            "generated_at": datetime.now().isoformat()
-        }
+        raise HTTPException(status_code=503, detail="Could not fetch fund data. Please try again.")
 
     top_funds = valid_funds[:num_requested]
 
+    # Step 3 — Agentic AI explanations
+    explanations = run_agentic_recommendation(profile, top_funds)
+
+    # Step 4 — Attach explanations (LLM or fallback)
+    for fund in top_funds:
+        name = fund["scheme_name"]
+        exp  = explanations.get(name, "")
+        if not exp:
+            for key, val in explanations.items():
+                if key[:20] in name or name[:20] in key:
+                    exp = val
+                    break
+        if not exp:
+            exp = generate_fallback_explanation(fund)
+        fund["explanation"] = exp
+
     return {
         "recommendations": top_funds,
-        "profile": profile.dict(),
-        "generated_at": datetime.now().isoformat()
+        "profile":         profile.dict(),
+        "generated_at":    datetime.now().isoformat(),
     }
 
 @app.get("/api/fund/{scheme_code}/history")
@@ -802,10 +806,10 @@ async def get_fund_details(scheme_code: str):
     data = await fetch_nav_data(scheme_code)
     if not data:
         raise HTTPException(status_code=404, detail="Fund not found")
-    meta          = data.get("meta", {})
-    history       = data.get("data", [])
-    isin   = meta.get("isin_growth", "")
-    kuvera = await fetch_kuvera_data(isin)
+    meta    = data.get("meta", {})
+    history = data.get("data", [])
+    isin    = meta.get("isin_growth", "")
+    kuvera  = await fetch_kuvera_data(isin)
     return {
         "scheme_code":          scheme_code,
         "scheme_name":          meta.get("scheme_name", ""),
@@ -844,7 +848,9 @@ async def search_funds(q: str = ""):
         async with httpx.AsyncClient(timeout=10.0) as c:
             resp = await c.get(url)
             if resp.status_code == 200:
-                return resp.json()[:20]
+                data = resp.text.strip()
+                if data and data != "null":
+                    return resp.json()[:20]
     except Exception:
         pass
     return []
@@ -867,14 +873,14 @@ async def get_beginner_guide():
             {"q": "Is mutual fund safe?",    "a": "Mutual funds are market-linked. Equity can fall short-term but grows long-term. Debt is relatively stable."},
             {"q": "What is exit load?",      "a": "Fee charged if you sell before a specific period. Usually 1% for equity if sold within 1 year."},
             {"q": "Direct vs Regular plan?", "a": "Direct plans have 0.5-1% lower expense ratio = higher returns. Regular plans pay commission to distributor."},
-            {"q": "What is expense ratio?",  "a": "Annual fee as % of investment. Lower is better. Index funds (0.1-0.3%) are cheapest. Direct plans save 0.5-1% vs regular."},
+            {"q": "What is expense ratio?",  "a": "Annual fee as % of investment. Lower is better. Index funds (0.1-0.3%) are cheapest."},
         ],
         "glossary": [
             {"term": "AUM",           "def": "Assets Under Management — total money managed by the fund."},
             {"term": "NAV",           "def": "Net Asset Value — price per unit of the fund. Calculated daily."},
             {"term": "SIP",           "def": "Systematic Investment Plan — fixed monthly investment."},
             {"term": "SWP",           "def": "Systematic Withdrawal Plan — fixed monthly withdrawal from corpus."},
-            {"term": "ELSS",          "def": "Equity Linked Savings Scheme — tax saving MF with 3-year lock-in. 80C deduction up to Rs.1.5L."},
+            {"term": "ELSS",          "def": "Equity Linked Savings Scheme — tax saving MF with 3-year lock-in."},
             {"term": "NFO",           "def": "New Fund Offer — launch of a new mutual fund scheme."},
             {"term": "Benchmark",     "def": "Index used to compare fund performance (e.g., Nifty 50)."},
             {"term": "Alpha",         "def": "Extra return above benchmark by fund manager skill."},
@@ -884,7 +890,7 @@ async def get_beginner_guide():
             {"term": "Exit Load",     "def": "Fee for early redemption. Discourages short-term trading."},
             {"term": "IDCW",          "def": "Income Distribution cum Capital Withdrawal — previously called dividend."},
             {"term": "Growth Plan",   "def": "Profits reinvested into fund. NAV grows over time. Best for wealth creation."},
-            {"term": "Expense Ratio", "def": "Annual fee charged by AMC as % of your investment. Lower = better returns for you. Index funds have lowest (0.1-0.3%)."},
-            {"term": "TER",           "def": "Total Expense Ratio — same as expense ratio. SEBI mandates AMCs to publish this daily."},
+            {"term": "Expense Ratio", "def": "Annual fee charged by AMC as % of your investment. Lower = better returns."},
+            {"term": "TER",           "def": "Total Expense Ratio — same as expense ratio. SEBI mandates AMCs to publish daily."},
         ],
     }

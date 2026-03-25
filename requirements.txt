@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+httpx
+groq
+numpy
+scikit-learn
+shap
+python-dotenv
+pydantic
