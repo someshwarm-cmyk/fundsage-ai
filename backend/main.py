@@ -410,17 +410,34 @@ async def search_funds_by_query(query: str) -> list:
         pass
     return []
 
-async def fetch_nav_data(scheme_code: str) -> dict:
-    url = f"https://api.mfapi.in/mf/{scheme_code}"
-    try:
-        async with httpx.AsyncClient(timeout=15.0) as c:
-            resp = await c.get(url)
-            if resp.status_code == 200:
-                return resp.json()
-    except Exception:
-        pass
-    return None
+async def fetch_nav_data(code: str):
 
+    url = f"https://api.mfapi.in/mf/{code}"
+
+    try:
+        print("📡 Fetching NAV:", code)
+
+        async with httpx.AsyncClient(timeout=30) as client:
+            response = await client.get(url)
+
+        print("✅ Status:", response.status_code)
+
+        if response.status_code != 200:
+            print("❌ MFAPI non-200:", response.text[:120])
+            return None
+
+        data = response.json()
+
+        if "data" not in data:
+            print("❌ No NAV history:", code)
+            return None
+
+        return data
+
+    except Exception as e:
+        print("🔥 NAV Fetch Exception:", code, str(e))
+        return None
+        
 # ─── Kuvera API — fund manager, AUM, rating, expense ratio ───────────────────
 async def fetch_kuvera_data(isin: str) -> dict:
     """Fetch full fund details from Kuvera via mf.captnemo.in — follows redirect."""
