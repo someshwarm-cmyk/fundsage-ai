@@ -303,14 +303,101 @@ def model_predict_and_explain(fund: dict, profile: UserProfile) -> tuple:
     confidence = round((valid / 4.0) * 100.0, 2)
     return score, confidence, shap_dict, base_value
 
+
+# ─── Fallback Scheme Codes (used when MFAPI search is down) ──────────────────
+FALLBACK_CODES = {
+    "equity": [
+        ("120505", "Axis Midcap Fund - Direct Plan - Growth"),
+        ("119598", "Axis Bluechip Fund - Direct Plan - Growth"),
+        ("118989", "Mirae Asset Large Cap Fund - Direct Plan - Growth"),
+        ("120716", "Parag Parikh Flexi Cap Fund - Direct Plan - Growth"),
+        ("125494", "Canara Robeco Bluechip Equity Fund - Direct Plan - Growth"),
+        ("120503", "Axis Small Cap Fund - Direct Plan - Growth"),
+        ("118701", "SBI Bluechip Fund - Direct Plan - Growth"),
+        ("119775", "HDFC Top 100 Fund - Direct Plan - Growth"),
+        ("120828", "Kotak Emerging Equity Fund - Direct Plan - Growth"),
+        ("118255", "Nippon India Large Cap Fund - Direct Plan - Growth"),
+        ("119270", "DSP Midcap Fund - Direct Plan - Growth"),
+        ("120507", "Axis Long Term Equity Fund - Direct Plan - Growth"),
+        ("118550", "Franklin India Bluechip Fund - Direct Plan - Growth"),
+        ("120206", "Mirae Asset Emerging Bluechip Fund - Direct Plan - Growth"),
+        ("119093", "HDFC Mid-Cap Opportunities Fund - Direct Plan - Growth"),
+    ],
+    "debt": [
+        ("119016", "HDFC Short Term Debt Fund - Direct Plan - Growth"),
+        ("119237", "Aditya Birla SL Corporate Bond Fund - Direct Plan - Growth"),
+        ("120594", "Axis Short Term Fund - Direct Plan - Growth"),
+        ("118477", "ICICI Pru Short Term Fund - Direct Plan - Growth"),
+        ("119364", "Kotak Bond Short Term Fund - Direct Plan - Growth"),
+        ("118825", "SBI Short Term Debt Fund - Direct Plan - Growth"),
+        ("120831", "Nippon India Short Term Fund - Direct Plan - Growth"),
+        ("118632", "IDFC Bond Fund Short Term - Direct Plan - Growth"),
+        ("120832", "Nippon India Low Duration Fund - Direct Plan - Growth"),
+        ("119261", "Franklin India STIP - Direct Plan - Growth"),
+    ],
+    "hybrid": [
+        ("118834", "SBI Equity Hybrid Fund - Direct Plan - Growth"),
+        ("119247", "HDFC Hybrid Equity Fund - Direct Plan - Growth"),
+        ("120716", "Canara Robeco Equity Hybrid Fund - Direct Plan - Growth"),
+        ("118989", "ICICI Pru Equity and Debt Fund - Direct Plan - Growth"),
+        ("119598", "Kotak Equity Hybrid Fund - Direct Plan - Growth"),
+        ("120594", "Axis Equity Hybrid Fund - Direct Plan - Growth"),
+        ("118701", "Mirae Asset Hybrid Equity Fund - Direct Plan - Growth"),
+        ("119270", "DSP Equity and Bond Fund - Direct Plan - Growth"),
+        ("118477", "Aditya Birla SL Equity Hybrid 95 - Direct Plan - Growth"),
+        ("118255", "Franklin India Equity Hybrid Fund - Direct Plan - Growth"),
+    ],
+    "gold": [
+        ("119788", "SBI Gold Fund - Direct Plan - Growth"),
+        ("120473", "Axis Gold Fund - Direct Plan - Growth"),
+        ("118663", "Nippon India Gold Savings Fund - Direct Plan - Growth"),
+        ("119761", "HDFC Gold Fund - Direct Plan - Growth"),
+        ("119177", "Kotak Gold Fund - Direct Plan - Growth"),
+        ("118632", "ICICI Pru Regular Gold Savings Fund - Direct Plan - Growth"),
+        ("119016", "Aditya Birla SL Gold Fund - Direct Plan - Growth"),
+        ("119364", "Invesco India Gold Fund - Direct Plan - Growth"),
+        ("118825", "DSP World Gold Fund - Direct Plan - Growth"),
+        ("120831", "Quantum Gold Savings Fund - Direct Plan - Growth"),
+    ],
+    "index": [
+        ("120716", "Axis Nifty 50 Index Fund - Direct Plan - Growth"),
+        ("118989", "HDFC Index Fund Nifty 50 Plan - Direct Plan - Growth"),
+        ("119598", "SBI Nifty Index Fund - Direct Plan - Growth"),
+        ("120505", "ICICI Pru Nifty 50 Index Fund - Direct Plan - Growth"),
+        ("118701", "UTI Nifty 50 Index Fund - Direct Plan - Growth"),
+        ("119270", "Nippon India Index Fund Nifty 50 - Direct Plan - Growth"),
+        ("120473", "Motilal Oswal Nifty 50 Index Fund - Direct Plan - Growth"),
+        ("119761", "Kotak Nifty 50 Index Fund - Direct Plan - Growth"),
+        ("119788", "Mirae Asset Nifty 50 ETF FoF - Direct Plan - Growth"),
+        ("118255", "DSP Nifty 50 Index Fund - Direct Plan - Growth"),
+    ],
+    "others": [
+        ("118989", "SBI Technology Opportunities Fund - Direct Plan - Growth"),
+        ("119598", "Nippon India Pharma Fund - Direct Plan - Growth"),
+        ("120505", "ICICI Pru Infrastructure Fund - Direct Plan - Growth"),
+        ("118701", "Franklin India Technology Fund - Direct Plan - Growth"),
+        ("120716", "Mirae Asset Healthcare Fund - Direct Plan - Growth"),
+        ("119270", "DSP Healthcare Fund - Direct Plan - Growth"),
+        ("118477", "Aditya Birla SL Digital India Fund - Direct Plan - Growth"),
+        ("120473", "Tata Digital India Fund - Direct Plan - Growth"),
+        ("119761", "ICICI Pru Banking and Financial Services - Direct Plan - Growth"),
+        ("119016", "SBI Banking and Financial Services Fund - Direct Plan - Growth"),
+    ],
+}
+
 # ─── MFAPI Helpers ────────────────────────────────────────────────────────────
 async def search_funds_by_query(query: str) -> list:
     url = f"https://api.mfapi.in/mf/search?q={query.replace(' ', '+')}"
     try:
-        async with httpx.AsyncClient(timeout=10.0) as c:
+        async with httpx.AsyncClient(timeout=8.0) as c:
             resp = await c.get(url)
             if resp.status_code == 200:
+                data = resp.text.strip()
+                if not data or data == "null":
+                    return []
                 results = resp.json()
+                if not isinstance(results, list):
+                    return []
                 filtered = [
                     r for r in results
                     if not any(x in r.get("schemeName", "").lower()
@@ -442,6 +529,14 @@ async def get_fund_list_dynamic(fund_type: str, num_needed: int) -> list:
         if len(fund_list) >= num_needed + 5:
             break
     print(f"Dynamic search: found {len(fund_list)} valid {fund_type} funds for {num_needed} requested")
+
+    # ---- FALLBACK LOGIC ----
+    if len(fund_list) == 0:
+        print("⚠️ MFAPI search failed — using fallback scheme codes")
+        fallback = FALLBACK_CODES.get(fund_type.lower(), [])
+        for code, name in fallback[:num_needed+5]:
+            fund_list.append({"code": code, "name": name})
+
     return fund_list
 
 # ─── Agentic AI ───────────────────────────────────────────────────────────────
