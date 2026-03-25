@@ -260,115 +260,6 @@ FALLBACK_CODES = {
     ],
 }
 
-
-MOCK_NAV_DATA = {}
-def generate_mock_nav(base_nav=100.0, years=12):
-    """Generate realistic upward-trending mock NAV history"""
-    import random
-    random.seed(42)
-    nav_data = []
-    from datetime import datetime, timedelta
-    today = datetime.now()
-    # Generate forward from past_nav to base_nav (upward trend)
-    annual_return = 0.12
-    daily_drift = annual_return / 252
-    daily_vol = 0.015
-    total_days = years * 365
-    # Calculate starting nav years ago
-    past_nav = base_nav / ((1 + annual_return) ** years)
-    nav = past_nav
-    all_days = []
-    for i in range(total_days, -1, -1):
-        date = today - timedelta(days=i)
-        if date.weekday() < 5:
-            change = random.gauss(daily_drift, daily_vol)
-            nav = max(nav * (1 + change), 1.0)
-            all_days.append({
-                "date": date.strftime("%d-%m-%Y"),
-                "nav": str(round(nav, 4))
-            })
-    # Return in reverse (most recent first)
-    return list(reversed(all_days))
-
-FUND_BASE_NAVS = {
-    "119598": 85.0,  "120505": 70.0,  "118989": 90.0,
-    "120716": 55.0,  "125494": 45.0,  "120503": 30.0,
-    "118701": 65.0,  "119775": 95.0,  "120828": 75.0,
-    "118255": 80.0,  "119270": 60.0,  "120507": 50.0,
-    "118550": 40.0,  "120206": 35.0,  "119093": 88.0,
-    "119016": 40.0,  "119237": 35.0,  "120594": 30.0,
-    "118477": 45.0,  "119364": 38.0,  "118825": 42.0,
-    "120831": 28.0,  "118632": 32.0,  "120832": 25.0,
-    "119261": 55.0,  "118834": 75.0,  "119247": 80.0,
-    "119788": 20.0,  "120473": 18.0,  "118663": 22.0,
-    "119761": 19.0,  "119177": 17.0,
-}
-
-
-def extract_amc(name):
-    n = name.lower()
-    if "mirae" in n:      return "Mirae Asset"
-    if "parag" in n:      return "Parag Parikh"
-    if "canara" in n:     return "Canara Robeco"
-    if "axis" in n:       return "Axis"
-    if "hdfc" in n:       return "HDFC"
-    if "icici" in n:      return "ICICI Prudential"
-    if "sbi" in n:        return "SBI"
-    if "kotak" in n:      return "Kotak"
-    if "nippon" in n:     return "Nippon India"
-    if "aditya" in n:     return "Aditya Birla"
-    if "dsp" in n:        return "DSP"
-    if "franklin" in n:   return "Franklin"
-    if "uti" in n:        return "UTI"
-    if "tata" in n:       return "Tata"
-    if "quantum" in n:    return "Quantum"
-    if "edelweiss" in n:  return "Edelweiss"
-    if "motilal" in n:    return "Motilal Oswal"
-    if "baroda" in n:     return "Baroda"
-    if "sundaram" in n:   return "Sundaram"
-    if "invesco" in n:    return "Invesco"
-    return name.split()[0]
-
-def get_mock_nav_data(scheme_code: str, fund_type: str = "equity") -> dict:
-    base = FUND_BASE_NAVS.get(scheme_code, 50.0)
-    history = generate_mock_nav(base_nav=base)
-    fallback_names = {}
-    for ft, codes in FALLBACK_CODES.items():
-        for code, name in codes:
-            fallback_names[code] = (name, ft)
-    name, ft = fallback_names.get(scheme_code, (f"Fund {scheme_code}", fund_type))
-    return {
-        "meta": {
-            "scheme_name": name,
-            "fund_house": (lambda n: (
-    "Mirae Asset" if "mirae" in n.lower() else
-    "Parag Parikh" if "parag" in n.lower() else
-    "Canara Robeco" if "canara" in n.lower() else
-    "Axis" if n.lower().startswith("axis") else
-    "HDFC" if n.lower().startswith("hdfc") else
-    "ICICI Prudential" if "icici" in n.lower() else
-    "SBI" if n.lower().startswith("sbi") else
-    "Kotak" if "kotak" in n.lower() else
-    "Nippon India" if "nippon" in n.lower() else
-    "Aditya Birla" if "aditya" in n.lower() else
-    "DSP" if n.lower().startswith("dsp") else
-    "Franklin" if "franklin" in n.lower() else
-    "UTI" if n.lower().startswith("uti") else
-    "Tata" if n.lower().startswith("tata") else
-    "Quantum" if "quantum" in n.lower() else
-    "Edelweiss" if "edelweiss" in n.lower() else
-    "Motilal Oswal" if "motilal" in n.lower() else
-    n.split()[0]
-))(name) if name else "Unknown",
-            "scheme_type": "Open Ended",
-            "scheme_category": ft.capitalize(),
-            "isin_growth": f"INF{scheme_code}01",
-        },
-        "data": history,
-        "status": "mock"
-    }
-
-
 rf_model     = None
 rf_explainer = None
 
@@ -518,19 +409,16 @@ async def search_funds_by_query(query: str) -> list:
         pass
     return []
 
-async def fetch_nav_data(scheme_code: str, fund_type: str = "equity") -> dict:
+async def fetch_nav_data(scheme_code: str) -> dict:
     url = f"https://api.mfapi.in/mf/{scheme_code}"
     try:
-        async with httpx.AsyncClient(timeout=5.0) as c:
+        async with httpx.AsyncClient(timeout=20.0) as c:
             resp = await c.get(url)
             if resp.status_code == 200:
-                text = resp.text.strip()
-                if text and text != "null" and "<html" not in text:
-                    return resp.json()
+                return resp.json()
     except Exception:
         pass
-    print(f"MFAPI unavailable for {scheme_code} — using mock data")
-    return get_mock_nav_data(scheme_code, fund_type)
+    return None
 
 # ─── Kuvera API — fund manager, AUM, rating, expense ratio ───────────────────
 async def fetch_kuvera_data(isin: str) -> dict:
@@ -617,10 +505,35 @@ def calculate_risk_score(nav_data: list) -> float:
 
 # ─── Dynamic Fund Discovery ───────────────────────────────────────────────────
 async def get_fund_list_dynamic(fund_type: str, num_needed: int) -> list:
-    # Use fallback codes directly (MFAPI search blocked in this environment)
-    fallback = FALLBACK_CODES.get(fund_type.lower(), FALLBACK_CODES["equity"])
-    fund_list = [{"code": code, "name": name} for code, name in fallback[:num_needed + 5]]
-    print(f"Using fallback codes: {len(fund_list)} {fund_type} funds")
+    queries  = FUND_SEARCH_QUERIES.get(fund_type.lower(), FUND_SEARCH_QUERIES["equity"])
+    keywords = CATEGORY_KEYWORDS.get(fund_type.lower(), [])
+    search_tasks = [search_funds_by_query(q) for q in queries]
+    all_results  = await asyncio.gather(*search_tasks)
+    seen_codes = set()
+    fund_list  = []
+    for results in all_results:
+        for r in results:
+            code       = str(r["schemeCode"])
+            name       = r["schemeName"]
+            name_lower = name.lower()
+            if code in seen_codes:
+                continue
+            if keywords and not any(k in name_lower for k in keywords):
+                continue
+            seen_codes.add(code)
+            fund_list.append({"code": code, "name": name})
+            if len(fund_list) >= num_needed + 5:
+                break
+        if len(fund_list) >= num_needed + 5:
+            break
+    print(f"Dynamic search: found {len(fund_list)} valid {fund_type} funds for {num_needed} requested")
+    # Fallback when MFAPI search is down
+    if len(fund_list) == 0:
+        print(f"WARNING: MFAPI search down — using fallback scheme codes for {fund_type}")
+        fallback = FALLBACK_CODES.get(fund_type.lower(), [])
+        for code, name in fallback[:num_needed + 5]:
+            fund_list.append({"code": code, "name": name})
+        print(f"Fallback: loaded {len(fund_list)} hardcoded funds")
     return fund_list
 
 # ─── Agentic AI ───────────────────────────────────────────────────────────────
@@ -791,7 +704,7 @@ async def recommend_funds(profile: UserProfile):
 
     async def process_fund(info: dict):
         async with semaphore:
-            data = await fetch_nav_data(info["code"], fund_type)
+            data = await fetch_nav_data(info["code"])
             if not data:
                 return None
             history = data.get("data", [])
@@ -816,7 +729,7 @@ async def recommend_funds(profile: UserProfile):
                 "returns_5yr":          returns["5yr"],
                 "returns_10yr":         returns["10yr"],
                 "risk_score":           calculate_risk_score(history),
-                "fund_house":           extract_amc(info["name"]),
+                "fund_house":           meta.get("fund_house", ""),
                 "scheme_category":      meta.get("scheme_category", ""),
                 "expense_ratio":        kuvera.get("expense_ratio"),
                 "fund_manager":         kuvera.get("fund_manager"),
@@ -877,7 +790,7 @@ async def get_fund_history(scheme_code: str):
     return {
         "scheme_code":     scheme_code,
         "scheme_name":     meta.get("scheme_name", ""),
-                "fund_house":           extract_amc(info["name"]),
+        "fund_house":      meta.get("fund_house", ""),
         "scheme_type":     meta.get("scheme_type", ""),
         "scheme_category": meta.get("scheme_category", ""),
         "history": {
@@ -900,7 +813,7 @@ async def get_fund_details(scheme_code: str):
     return {
         "scheme_code":          scheme_code,
         "scheme_name":          meta.get("scheme_name", ""),
-                "fund_house":           extract_amc(info["name"]),
+        "fund_house":           meta.get("fund_house", ""),
         "scheme_type":          meta.get("scheme_type", ""),
         "scheme_category":      meta.get("scheme_category", ""),
         "isin_growth":          isin,

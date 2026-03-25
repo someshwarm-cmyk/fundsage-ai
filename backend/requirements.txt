@@ -1,9 +1,9 @@
-fastapi==0.111.0
-uvicorn[standard]==0.30.0
-httpx==0.27.0
+fastapi
+uvicorn[standard]
+httpx
 groq
 numpy
-python-dotenv==1.0.1
-pydantic
 scikit-learn
 shap
+python-dotenv
+pydantic
