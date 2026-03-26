@@ -9,10 +9,46 @@ export default function FundDetails({ fund, apiBase }) {
   useEffect(() => {
     if (!fund?.scheme_code) return;
     setLoading(true);
+
+    // Build a fallback details object from the fund prop itself
+    const fallback = {
+      scheme_code:          fund.scheme_code,
+      scheme_name:          fund.scheme_name,
+      fund_house:           fund.fund_house || fund.scheme_category || '',
+      scheme_type:          fund.scheme_type || 'Open Ended Schemes',
+      scheme_category:      fund.scheme_category || '',
+      isin_growth:          fund.isin || '',
+      isin_div:             '',
+      latest_nav:           fund.nav,
+      nav_date:             fund.nav_date,
+      total_nav_records:    null,
+      inception_date:       null,
+      expense_ratio:        fund.expense_ratio,
+      fund_manager:         fund.fund_manager,
+      aum:                  fund.aum,
+      fund_rating:          fund.fund_rating,
+      investment_objective: fund.investment_objective || null,
+      documents: {
+        factsheet: 'https://www.amfiindia.com/research-information/fund-factsheet',
+        sid:       'https://www.amfiindia.com/research-information/sid',
+      },
+      guidelines: {
+        min_sip:      500,
+        min_lumpsum:  1000,
+        exit_load:    '1% if redeemed within 1 year (varies by fund)',
+        tax_stcg:     '20% for equity funds held < 1 year',
+        tax_ltcg:     '10% above ₹1.25L gain for equity funds held > 1 year',
+      },
+    };
+
     fetch(`${apiBase}/api/fund/${fund.scheme_code}/details`)
-      .then(r => r.json())
+      .then(r => { if (!r.ok) throw new Error('API error'); return r.json(); })
       .then(d => { setDetails(d); setLoading(false); })
-      .catch(() => setLoading(false));
+      .catch(() => {
+        // Silently fall back to prop data — never show error to user
+        setDetails(fallback);
+        setLoading(false);
+      });
   }, [fund?.scheme_code]);
 
   if (loading) return (
@@ -21,7 +57,7 @@ export default function FundDetails({ fund, apiBase }) {
       <p>Fetching fund details...</p>
     </div>
   );
-  if (!details) return <div className="fd-error">Could not load fund details.</div>;
+  if (!details) return null;
 
   const SECTIONS = [
     { key: 'overview',   label: '📋 Overview'   },

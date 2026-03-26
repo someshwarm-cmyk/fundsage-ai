@@ -14,12 +14,12 @@ export default function HistoryChart({ historyData, fund }) {
   const [activePeriod, setActivePeriod]   = useState('1yr');
   const [returnSummary, setReturnSummary] = useState({});
 
-  // Calculate CAGR for all periods
+  // Calculate CAGR for all periods — fall back to fund prop returns
   useEffect(() => {
-    if (!historyData) return;
+    if (!historyData && !fund) return;
     const summary = {};
     PERIODS.forEach(({ key }) => {
-      const data  = historyData.history?.[key] || [];
+      const data  = historyData?.history?.[key] || [];
       const years = key === '1yr' ? 1 : key === '3yr' ? 3 : key === '5yr' ? 5 : 10;
       if (data.length >= 2) {
         const latest = data[0]?.nav;
@@ -28,9 +28,15 @@ export default function HistoryChart({ historyData, fund }) {
           summary[key] = (((latest / oldest) ** (1 / years)) - 1) * 100;
         } else { summary[key] = null; }
       } else { summary[key] = null; }
+      // Fall back to fund prop return values
+      if (summary[key] === null && fund) {
+        const propKey = `returns_${key}`;
+        const v = fund[propKey];
+        if (v && v !== 0) summary[key] = v;
+      }
     });
     setReturnSummary(summary);
-  }, [historyData]);
+  }, [historyData, fund]);
 
   // Draw chart — destroy old one first
   useEffect(() => {
@@ -157,7 +163,7 @@ export default function HistoryChart({ historyData, fund }) {
       <div className="chart-container">
         {historyData
           ? <canvas ref={canvasRef} />
-          : <div className="chart-placeholder">Select a fund to view history</div>
+          : <div className="chart-placeholder">Loading chart data...</div>
         }
       </div>
     </div>

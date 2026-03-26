@@ -877,7 +877,7 @@ async def get_fund_history(scheme_code: str):
     return {
         "scheme_code":     scheme_code,
         "scheme_name":     meta.get("scheme_name", ""),
-                "fund_house":           extract_amc(info["name"]),
+        "fund_house":      extract_amc(meta.get("scheme_name", "")),
         "scheme_type":     meta.get("scheme_type", ""),
         "scheme_category": meta.get("scheme_category", ""),
         "history": {
@@ -900,7 +900,7 @@ async def get_fund_details(scheme_code: str):
     return {
         "scheme_code":          scheme_code,
         "scheme_name":          meta.get("scheme_name", ""),
-                "fund_house":           extract_amc(info["name"]),
+        "fund_house":           extract_amc(meta.get("scheme_name", "")),
         "scheme_type":          meta.get("scheme_type", ""),
         "scheme_category":      meta.get("scheme_category", ""),
         "isin_growth":          isin,
@@ -923,7 +923,7 @@ async def get_fund_details(scheme_code: str):
             "min_sip":      500,
             "min_lumpsum":  1000,
             "exit_load":    "1% if redeemed within 1 year (varies by fund)",
-            "tax_stcg":     "15% for equity funds held < 1 year",
+            "tax_stcg":     "20% for equity funds held < 1 year",
             "tax_ltcg":     "10% above Rs.1L gain for equity funds held > 1 year",
         },
     }
