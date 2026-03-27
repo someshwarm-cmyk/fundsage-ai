@@ -889,45 +889,88 @@ async def get_fund_history(scheme_code: str):
     }
 
 @app.get("/api/fund/{scheme_code}/details")
-async def get_fund_details(scheme_code: str):
+async def get_fund_details(
+    scheme_code: str,
+    scheme_name: str = "",
+    fund_house: str = "",
+    scheme_category: str = ""
+):
     data = await fetch_nav_data(scheme_code)
+
     if not data:
         raise HTTPException(status_code=404, detail="Fund not found")
-    meta    = data.get("meta", {})
+
     history = data.get("data", [])
-    isin    = meta.get("isin_growth", "")
-    kuvera  = await fetch_kuvera_data(isin)
+
+    # ✅ TRUST FRONTEND DATA (SOURCE OF TRUTH)
+    final_name = scheme_name
+    final_house = fund_house
+    final_category = scheme_category
+
+    # ✅ FALLBACK (only if frontend didn't send)
+    if not final_name:
+        for ft, codes in FALLBACK_CODES.items():
+            for code, name in codes:
+                if code == scheme_code:
+                    final_name = name
+                    break
+
+    if not final_house:
+        final_house = final_name.split(" ")[0] if final_name else "Unknown"
+
+    if not final_category:
+        final_category = "Unknown"
+
+    # ✅ SAFE NAV EXTRACTION
+    try:
+        latest_nav = float(str(history[0]["nav"]).replace(",", "")) if history else 0
+        nav_date = history[0]["date"] if history else ""
+    except:
+        latest_nav = 0
+        nav_date = ""
+
+    # ✅ ONLY use MFAPI for ISIN (safe)
+    meta = data.get("meta", {})
+    isin = meta.get("isin_growth", "")
+
+    kuvera = await fetch_kuvera_data(isin)
+
     return {
-        "scheme_code":          scheme_code,
-        "scheme_name":          meta.get("scheme_name", ""),
-        "fund_house":           extract_amc(meta.get("scheme_name", "")),
-        "scheme_type":          meta.get("scheme_type", ""),
-        "scheme_category":      meta.get("scheme_category", ""),
-        "isin_growth":          isin,
-        "isin_div":             meta.get("isin_div_reinvestment", ""),
-        "latest_nav":           float(history[0]["nav"]) if history else 0,
-        "nav_date":             history[0]["date"] if history else "",
-        "total_nav_records":    len(history),
-        "inception_date":       history[-1]["date"] if history else "",
-        "expense_ratio":        kuvera.get("expense_ratio"),
-        "fund_manager":         kuvera.get("fund_manager"),
-        "aum":                  kuvera.get("aum"),
-        "fund_rating":          kuvera.get("fund_rating"),
+        "scheme_code": scheme_code,
+
+        # ✅ FIXED (NO MFAPI META)
+        "scheme_name": final_name,
+        "fund_house": final_house,
+        "scheme_category": final_category,
+
+        "scheme_type": "Open Ended",
+        "isin_growth": isin,
+
+        "latest_nav": latest_nav,
+        "nav_date": nav_date,
+        "total_nav_records": len(history),
+        "inception_date": history[-1]["date"] if history else "",
+
+        "expense_ratio": kuvera.get("expense_ratio"),
+        "fund_manager": kuvera.get("fund_manager"),
+        "aum": kuvera.get("aum"),
+        "fund_rating": kuvera.get("fund_rating"),
         "investment_objective": kuvera.get("investment_objective"),
+
         "documents": {
             "factsheet": "https://www.amfiindia.com/research-information/fund-factsheet",
-            "sid":       "https://www.amfiindia.com/research-information/sid",
+            "sid": "https://www.amfiindia.com/research-information/sid",
             "amfi_page": "https://www.amfiindia.com/nav-history",
         },
         "guidelines": {
-            "min_sip":      500,
-            "min_lumpsum":  1000,
-            "exit_load":    "1% if redeemed within 1 year (varies by fund)",
-            "tax_stcg":     "20% for equity funds held < 1 year",
-            "tax_ltcg":     "10% above Rs.1L gain for equity funds held > 1 year",
+            "min_sip": 500,
+            "min_lumpsum": 1000,
+            "exit_load": "1% if redeemed within 1 year",
+            "tax_stcg": "20% <1 year",
+            "tax_ltcg": "10% >1 year",
         },
     }
-
+    
 @app.get("/api/search")
 async def search_funds(q: str = ""):
     url = f"https://api.mfapi.in/mf/search?q={q}"
